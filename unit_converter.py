@@ -1,4 +1,42 @@
 import streamlit as st
+import requests
+
+# Set page config for a better theme and layout
+st.set_page_config(
+    page_title="Unit Converter",
+    page_icon="📏",
+    layout="centered",
+    initial_sidebar_state="expanded",
+)
+
+# Custom CSS for styling
+st.markdown(
+    """
+    <style>
+    .stButton button {
+        background-color: #4CAF50;
+        color: white;
+        border-radius: 10px;
+        padding: 10px 24px;
+        font-size: 16px;
+    }
+    .stSelectbox div {
+        font-size: 18px;
+    }
+    .stNumberInput input {
+        font-size: 18px;
+    }
+    h1 {
+        color: #4CAF50;
+        text-align: center;
+    }
+    .sidebar .sidebar-content {
+        background-color: #f0f2f6;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
 
 # Define all converter functions at the top
 def distance_converter(from_unit, to_unit, value):
@@ -174,119 +212,167 @@ def volume_converter(from_unit, to_unit, value):
     result = value * units[from_unit] / units[to_unit]
     return result
 
-# Streamlit UI starts here
-st.title("Unit Converter")
+# Currency Converter Function
+def currency_converter(from_currency, to_currency, value):
+    API_KEY = "00a7a69960b0817d262bae67"  # Replace with your API key
+    url = f"https://v6.exchangerate-api.com/v6/{API_KEY}/latest/{from_currency}"
+    
+    try:
+        response = requests.get(url)
+        response.raise_for_status()  # Raise an error for bad status codes (4xx or 5xx)
+        data = response.json()
 
-category = st.selectbox("Select Category", ["Distance", "Temperature", "Weight", "Pressure", "Area", "Length", "Data Transfer Rate", "Digital Storage", "Energy", "Frequency", "Fuel Economy", "Mass", "Plane Angle", "Time", "Speed", "Volume"])
+        if response.status_code == 200:
+            if "conversion_rates" in data:
+                exchange_rate = data["conversion_rates"][to_currency]
+                result = value * exchange_rate
+                return result
+            else:
+                st.error("Invalid API response. Please check your API key or try again later.")
+                return None
+        else:
+            st.error(f"API Error: {data.get('error', 'Unknown error')}")
+            return None
+    except requests.exceptions.RequestException as e:
+        st.error(f"Failed to connect to the API: {e}")
+        return None
+    except ValueError as e:
+        st.error(f"Invalid JSON response: {e}")
+        return None
 
-if category == "Distance":
-    from_unit = st.selectbox("From", ["Meters", "Kilometers", "Feet", "Miles"])
-    to_unit = st.selectbox("To", ["Meters", "Kilometers", "Feet", "Miles"])
-    value = st.number_input("Enter Value")
-    result = distance_converter(from_unit, to_unit, value)
-    st.write(f"<p style='font-size:24px;'>{value} {from_unit} is equal to {result:.2f} {to_unit}</p>", unsafe_allow_html=True)
+# Sidebar for additional options or info
+with st.sidebar:
+    st.header("📝 About")
+    st.markdown("""
+        **Welcome to the Unit Converter App!** 🎉
 
-elif category == "Temperature":
-    from_unit = st.selectbox("From", ["Celsius", "Fahrenheit"])
-    to_unit = st.selectbox("To", ["Celsius", "Fahrenheit"])
-    value = st.number_input("Enter Value")
-    result = temperature_converter(from_unit, to_unit, value)
-    st.write(f"<p style='font-size:24px;'>{value} {from_unit} is equal to {result:.2f} {to_unit}</p>", unsafe_allow_html=True)
+        This app allows you to convert between various units across multiple categories, including:
+        - **Distance**: Meters, Kilometers, Feet, Miles
+        - **Temperature**: Celsius, Fahrenheit
+        - **Weight**: Kilograms, Grams, Pounds, Ounces
+        - **Currency**: USD, EUR, GBP, PKR, and more!
+        - And many more categories like Area, Length, Data Transfer Rate, Digital Storage, Energy, Frequency, Fuel Economy, Mass, Plane Angle, Time, Speed, and Volume.
 
-elif category == "Weight":
-    from_unit = st.selectbox("From", ["Kilograms", "Grams", "Pounds", "Ounces"])
-    to_unit = st.selectbox("To", ["Kilograms", "Grams", "Pounds", "Ounces"])
-    value = st.number_input("Enter Value")
-    result = weight_converter(from_unit, to_unit, value)
-    st.write(f"<p style='font-size:24px;'>{value} {from_unit} is equal to {result:.2f} {to_unit}</p>", unsafe_allow_html=True)
+        ### How to Use:
+        1. **Select a Category**: Choose the type of unit you want to convert (e.g., Currency, Distance, etc.).
+        2. **Choose Units**: Select the "From" and "To" units.
+        3. **Enter Value**: Input the value you want to convert.
+        4. **Click Convert**: See the result instantly!
 
-elif category == "Pressure":
-    from_unit = st.selectbox("From", ["Pascals", "Hectopascals", "Kilopascals", "Bar"])
-    to_unit = st.selectbox("To", ["Pascals", "Hectopascals", "Kilopascals", "Bar"])
-    value = st.number_input("Enter Value")
-    result = pressure_converter(from_unit, to_unit, value)
-    st.write(f"<p style='font-size:24px;'>{value} {from_unit} is equal to {result:.2f} {to_unit}</p>", unsafe_allow_html=True)
+        ### Features:
+        - Real-time currency conversion using ExchangeRate-API.
+        - Simple and intuitive interface.
+        - Supports a wide range of units and categories.
 
-elif category == "Area":
-    from_unit = st.selectbox("From", ["Square Meters", "Square Kilometers", "Square Feet", "Square Miles", "Acres"])
-    to_unit = st.selectbox("To", ["Square Meters", "Square Kilometers", "Square Feet", "Square Miles", "Acres"])
-    value = st.number_input("Enter Value")
-    result = area_converter(from_unit, to_unit, value)
-    st.write(f"<p style='font-size:24px;'>{value} {from_unit} is equal to {result:.2f} {to_unit}</p>", unsafe_allow_html=True)
+        Made with ❤️ by [Muhammad Zakriya].  
+        Feel free to reach out for feedback or suggestions!
+    """)
+    st.markdown("---")
+    st.write("🔗 [GitHub Repository](https://github.com/MZakriya/Unit_Converter)")  # GitHub repo link
 
-elif category == "Length":
-    from_unit = st.selectbox("From", ["Meters", "Kilometers", "Feet", "Miles", "Inches", "Centimeters", "Millimeters"])
-    to_unit = st.selectbox("To", ["Meters", "Kilometers", "Feet", "Miles", "Inches", "Centimeters", "Millimeters"])
-    value = st.number_input("Enter Value")
-    result = length_converter(from_unit, to_unit, value)
-    st.write(f"<p style='font-size:24px;'>{value} {from_unit} is equal to {result:.2f} {to_unit}</p>", unsafe_allow_html=True)
 
-elif category == "Data Transfer Rate":
-    from_unit = st.selectbox("From", ["Bits per second", "Kilobits per second", "Megabits per second", "Gigabits per second", "Bytes per second", "Kilobytes per second", "Megabytes per second", "Gigabytes per second"])
-    to_unit = st.selectbox("To", ["Bits per second", "Kilobits per second", "Megabits per second", "Gigabits per second", "Bytes per second", "Kilobytes per second", "Megabytes per second", "Gigabytes per second"])
-    value = st.number_input("Enter Value")
-    result = data_transfer_rate_converter(from_unit, to_unit, value)
-    st.write(f"<p style='font-size:24px;'>{value} {from_unit} is equal to {result:.2f} {to_unit}</p>", unsafe_allow_html=True)
+# Main app
+st.title("📏 Unit Converter")
+st.markdown("### Convert between different units easily!")
 
-elif category == "Digital Storage":
-    from_unit = st.selectbox("From", ["Bits", "Bytes", "Kilobytes", "Megabytes", "Gigabytes", "Terabytes"])
-    to_unit = st.selectbox("To", ["Bits", "Bytes", "Kilobytes", "Megabytes", "Gigabytes", "Terabytes"])
-    value = st.number_input("Enter Value")
-    result = digital_storage_converter(from_unit, to_unit, value)
-    st.write(f"<p style='font-size:24px;'>{value} {from_unit} is equal to {result:.2f} {to_unit}</p>", unsafe_allow_html=True)
+# Category selection
+category = st.selectbox(
+    "Select Category",
+    ["Distance", "Temperature", "Weight", "Pressure", "Area", "Length", "Data Transfer Rate", "Digital Storage", "Energy", "Frequency", "Fuel Economy", "Mass", "Plane Angle", "Time", "Speed", "Volume", "Currency"],
+    key="category",
+)
 
-elif category == "Energy":
-    from_unit = st.selectbox("From", ["Joules", "Kilojoules", "Calories", "Kilocalories", "Kilowatt-hours"])
-    to_unit = st.selectbox("To", ["Joules", "Kilojoules", "Calories", "Kilocalories", "Kilowatt-hours"])
-    value = st.number_input("Enter Value")
-    result = energy_converter(from_unit, to_unit, value)
-    st.write(f"<p style='font-size:24px;'>{value} {from_unit} is equal to {result:.2f} {to_unit}</p>", unsafe_allow_html=True)
+# Use columns for better layout
+col1, col2 = st.columns(2)
 
-elif category == "Frequency":
-    from_unit = st.selectbox("From", ["Hertz", "Kilohertz", "Megahertz", "Gigahertz"])
-    to_unit = st.selectbox("To", ["Hertz", "Kilohertz", "Megahertz", "Gigahertz"])
-    value = st.number_input("Enter Value")
-    result = frequency_converter(from_unit, to_unit, value)
-    st.write(f"<p style='font-size:24px;'>{value} {from_unit} is equal to {result:.2f} {to_unit}</p>", unsafe_allow_html=True)
+if category == "Currency":
+    with col1:
+        from_currency = st.selectbox("From", options=["USD", "EUR", "GBP", "INR", "JPY", "AUD", "CAD", "CHF", "CNY", "SEK", "NZD" ,"PKR"], key="from_currency")
+    with col2:
+        to_currency = st.selectbox("To", options=["USD", "EUR", "GBP", "INR", "JPY", "AUD", "CAD", "CHF", "CNY", "SEK", "NZD" ,"PKR"], key="to_currency")
+    value = st.number_input("Enter Value", min_value=0.0, format="%.2f", key="value")
 
-elif category == "Fuel Economy":
-    from_unit = st.selectbox("From", ["Miles per gallon", "Kilometers per liter", "Liters per 100 kilometers"])
-    to_unit = st.selectbox("To", ["Miles per gallon", "Kilometers per liter", "Liters per 100 kilometers"])
-    value = st.number_input("Enter Value")
-    result = fuel_economy_converter(from_unit, to_unit, value)
-    st.write(f"<p style='font-size:24px;'>{value} {from_unit} is equal to {result:.2f} {to_unit}</p>", unsafe_allow_html=True)
+    if st.button("Convert"):
+        result = currency_converter(from_currency, to_currency, value)
+        if result is not None:
+            st.success(f"**{value} {from_currency} = {result:.2f} {to_currency}**")
+else:
+    with col1:
+        from_unit = st.selectbox("From", options=["Meters", "Kilometers", "Feet", "Miles"] if category == "Distance" else
+                                ["Celsius", "Fahrenheit"] if category == "Temperature" else
+                                ["Kilograms", "Grams", "Pounds", "Ounces"] if category == "Weight" else
+                                ["Pascals", "Hectopascals", "Kilopascals", "Bar"] if category == "Pressure" else
+                                ["Square Meters", "Square Kilometers", "Square Feet", "Square Miles", "Acres"] if category == "Area" else
+                                ["Meters", "Kilometers", "Feet", "Miles", "Inches", "Centimeters", "Millimeters"] if category == "Length" else
+                                ["Bits per second", "Kilobits per second", "Megabits per second", "Gigabits per second", "Bytes per second", "Kilobytes per second", "Megabytes per second", "Gigabytes per second"] if category == "Data Transfer Rate" else
+                                ["Bits", "Bytes", "Kilobytes", "Megabytes", "Gigabytes", "Terabytes"] if category == "Digital Storage" else
+                                ["Joules", "Kilojoules", "Calories", "Kilocalories", "Kilowatt-hours"] if category == "Energy" else
+                                ["Hertz", "Kilohertz", "Megahertz", "Gigahertz"] if category == "Frequency" else
+                                ["Miles per gallon", "Kilometers per liter", "Liters per 100 kilometers"] if category == "Fuel Economy" else
+                                ["Kilograms", "Grams", "Pounds", "Ounces", "Metric Tons"] if category == "Mass" else
+                                ["Degrees", "Radians", "Gradians"] if category == "Plane Angle" else
+                                ["Seconds", "Minutes", "Hours", "Days", "Weeks", "Years"] if category == "Time" else
+                                ["Meters per second", "Kilometers per hour", "Miles per hour", "Feet per second", "Knots"] if category == "Speed" else
+                                ["Liters", "Milliliters", "Cubic Meters", "Cubic Feet", "Gallons"],
+                                key="from_unit")
 
-elif category == "Mass":
-    from_unit = st.selectbox("From", ["Kilograms", "Grams", "Pounds", "Ounces", "Metric Tons"])
-    to_unit = st.selectbox("To", ["Kilograms", "Grams", "Pounds", "Ounces", "Metric Tons"])
-    value = st.number_input("Enter Value")
-    result = mass_converter(from_unit, to_unit, value)
-    st.write(f"<p style='font-size:24px;'>{value} {from_unit} is equal to {result:.2f} {to_unit}</p>", unsafe_allow_html=True)
+    with col2:
+        to_unit = st.selectbox("To", options=["Meters", "Kilometers", "Feet", "Miles"] if category == "Distance" else
+                              ["Celsius", "Fahrenheit"] if category == "Temperature" else
+                              ["Kilograms", "Grams", "Pounds", "Ounces"] if category == "Weight" else
+                              ["Pascals", "Hectopascals", "Kilopascals", "Bar"] if category == "Pressure" else
+                              ["Square Meters", "Square Kilometers", "Square Feet", "Square Miles", "Acres"] if category == "Area" else
+                              ["Meters", "Kilometers", "Feet", "Miles", "Inches", "Centimeters", "Millimeters"] if category == "Length" else
+                              ["Bits per second", "Kilobits per second", "Megabits per second", "Gigabits per second", "Bytes per second", "Kilobytes per second", "Megabytes per second", "Gigabytes per second"] if category == "Data Transfer Rate" else
+                              ["Bits", "Bytes", "Kilobytes", "Megabytes", "Gigabytes", "Terabytes"] if category == "Digital Storage" else
+                              ["Joules", "Kilojoules", "Calories", "Kilocalories", "Kilowatt-hours"] if category == "Energy" else
+                              ["Hertz", "Kilohertz", "Megahertz", "Gigahertz"] if category == "Frequency" else
+                              ["Miles per gallon", "Kilometers per liter", "Liters per 100 kilometers"] if category == "Fuel Economy" else
+                              ["Kilograms", "Grams", "Pounds", "Ounces", "Metric Tons"] if category == "Mass" else
+                              ["Degrees", "Radians", "Gradians"] if category == "Plane Angle" else
+                              ["Seconds", "Minutes", "Hours", "Days", "Weeks", "Years"] if category == "Time" else
+                              ["Meters per second", "Kilometers per hour", "Miles per hour", "Feet per second", "Knots"] if category == "Speed" else
+                              ["Liters", "Milliliters", "Cubic Meters", "Cubic Feet", "Gallons"],
+                              key="to_unit")
 
-elif category == "Plane Angle":
-    from_unit = st.selectbox("From", ["Degrees", "Radians", "Gradians"])
-    to_unit = st.selectbox("To", ["Degrees", "Radians", "Gradians"])
-    value = st.number_input("Enter Value")
-    result = plane_angle_converter(from_unit, to_unit, value)
-    st.write(f"<p style='font-size:24px;'>{value} {from_unit} is equal to {result:.2f} {to_unit}</p>", unsafe_allow_html=True)
+    value = st.number_input("Enter Value", min_value=0.0, format="%.2f", key="value")
 
-elif category == "Time":
-    from_unit = st.selectbox("From", ["Seconds", "Minutes", "Hours", "Days", "Weeks", "Years"])
-    to_unit = st.selectbox("To", ["Seconds", "Minutes", "Hours", "Days", "Weeks", "Years"])
-    value = st.number_input("Enter Value")
-    result = time_converter(from_unit, to_unit, value)
-    st.write(f"<p style='font-size:24px;'>{value} {from_unit} is equal to {result:.2f} {to_unit}</p>", unsafe_allow_html=True)
+    if st.button("Convert"):
+        if category == "Distance":
+            result = distance_converter(from_unit, to_unit, value)
+        elif category == "Temperature":
+            result = temperature_converter(from_unit, to_unit, value)
+        elif category == "Weight":
+            result = weight_converter(from_unit, to_unit, value)
+        elif category == "Pressure":
+            result = pressure_converter(from_unit, to_unit, value)
+        elif category == "Area":
+            result = area_converter(from_unit, to_unit, value)
+        elif category == "Length":
+            result = length_converter(from_unit, to_unit, value)
+        elif category == "Data Transfer Rate":
+            result = data_transfer_rate_converter(from_unit, to_unit, value)
+        elif category == "Digital Storage":
+            result = digital_storage_converter(from_unit, to_unit, value)
+        elif category == "Energy":
+            result = energy_converter(from_unit, to_unit, value)
+        elif category == "Frequency":
+            result = frequency_converter(from_unit, to_unit, value)
+        elif category == "Fuel Economy":
+            result = fuel_economy_converter(from_unit, to_unit, value)
+        elif category == "Mass":
+            result = mass_converter(from_unit, to_unit, value)
+        elif category == "Plane Angle":
+            result = plane_angle_converter(from_unit, to_unit, value)
+        elif category == "Time":
+            result = time_converter(from_unit, to_unit, value)
+        elif category == "Speed":
+            result = speed_converter(from_unit, to_unit, value)
+        elif category == "Volume":
+            result = volume_converter(from_unit, to_unit, value)
 
-elif category == "Speed":
-    from_unit = st.selectbox("From", ["Meters per second", "Kilometers per hour", "Miles per hour", "Feet per second", "Knots"])
-    to_unit = st.selectbox("To", ["Meters per second", "Kilometers per hour", "Miles per hour", "Feet per second", "Knots"])
-    value = st.number_input("Enter Value")
-    result = speed_converter(from_unit, to_unit, value)
-    st.write(f"<p style='font-size:24px;'>{value} {from_unit} is equal to {result:.2f} {to_unit}</p>", unsafe_allow_html=True)
+        st.success(f"**{value} {from_unit} = {result:.2f} {to_unit}**")
 
-elif category == "Volume":
-    from_unit = st.selectbox("From", ["Liters", "Milliliters", "Cubic Meters", "Cubic Feet", "Gallons"])
-    to_unit = st.selectbox("To", ["Liters", "Milliliters", "Cubic Meters", "Cubic Feet", "Gallons"])
-    value = st.number_input("Enter Value")
-    result = volume_converter(from_unit, to_unit, value)
-    st.write(f"<p style='font-size:24px;'>{value} {from_unit} is equal to {result:.2f} {to_unit}</p>", unsafe_allow_html=True)
+# Footer
+st.markdown("---")
+st.markdown("### 🚀 Enjoy using the Unit Converter!")
