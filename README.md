@@ -27,9 +27,6 @@ A simple and interactive **Unit Converter** web application built using **Stream
    streamlit run app.py
    ```
 
-## 📷 Screenshot
-![Unit Converter Screenshot](screenshot.png)
-
 ## 🤝 Contributing
 Contributions are welcome! Feel free to fork the repo, make changes, and submit a pull request.
 
