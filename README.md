@@ -99,7 +99,7 @@ pip install -r requirements.txt
 ## 🌐 Live Demo
 
 Check out the live demo of the app:  
-[![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://your-streamlit-app-url.com)
+[![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://mzakriya-unit-converter-unit-converter-nesoot.streamlit.app/)
 
 ---
 
