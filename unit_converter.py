@@ -264,7 +264,7 @@ with st.sidebar:
         - Simple and intuitive interface.
         - Supports a wide range of units and categories.
 
-        Made with ❤️ by [Muhammad Zakriya].  
+        Made with ❤️ by Muhammad Zakriya.  
         Feel free to reach out for feedback or suggestions!
     """)
     st.markdown("---")
